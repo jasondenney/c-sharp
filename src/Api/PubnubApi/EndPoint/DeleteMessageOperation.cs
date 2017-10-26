@@ -11,23 +11,25 @@ namespace PubnubApi.EndPoint
 {
     public class DeleteMessageOperation : PubnubCoreBase
     {
-        private PNConfiguration config = null;
-        private IJsonPluggableLibrary jsonLibrary = null;
-        private IPubnubUnitTest unit = null;
-        private IPubnubLog pubnubLog = null;
+        private readonly PNConfiguration config;
+        private readonly IJsonPluggableLibrary jsonLibrary;
+        private readonly IPubnubUnitTest unit;
+        private readonly IPubnubLog pubnubLog;
+        private readonly EndPoint.TelemetryManager pubnubTelemetryMgr;
 
         private long startTimetoken = -1;
         private long endTimetoken = -1;
 
         private string channelName = "";
-        private PNCallback<PNDeleteMessageResult> savedCallback = null;
+        private PNCallback<PNDeleteMessageResult> savedCallback;
 
-        public DeleteMessageOperation(PNConfiguration pubnubConfig, IJsonPluggableLibrary jsonPluggableLibrary, IPubnubUnitTest pubnubUnit, IPubnubLog log) : base(pubnubConfig, jsonPluggableLibrary, pubnubUnit, log)
+        public DeleteMessageOperation(PNConfiguration pubnubConfig, IJsonPluggableLibrary jsonPluggableLibrary, IPubnubUnitTest pubnubUnit, IPubnubLog log, EndPoint.TelemetryManager telemetryManager) : base(pubnubConfig, jsonPluggableLibrary, pubnubUnit, log, telemetryManager)
         {
             config = pubnubConfig;
             jsonLibrary = jsonPluggableLibrary;
             unit = pubnubUnit;
             pubnubLog = log;
+            pubnubTelemetryMgr = telemetryManager;
         }
 
         public DeleteMessageOperation Channel(string channel)
@@ -76,12 +78,12 @@ namespace PubnubApi.EndPoint
                 throw new ArgumentException("Missing Channel");
             }
 
-            IUrlRequestBuilder urlBuilder = new UrlRequestBuilder(config, jsonLibrary, unit, pubnubLog);
+            IUrlRequestBuilder urlBuilder = new UrlRequestBuilder(config, jsonLibrary, unit, pubnubLog, pubnubTelemetryMgr);
             urlBuilder.PubnubInstanceId = (PubnubInstance != null) ? PubnubInstance.InstanceId : "";
             Uri request = urlBuilder.BuildDeleteMessageRequest(channel, start, end);
 
             RequestState<PNDeleteMessageResult> requestState = new RequestState<PNDeleteMessageResult>();
-            requestState.Channels = new string[] { channel };
+            requestState.Channels = new [] { channel };
             requestState.ResponseType = PNOperationType.PNDeleteMessageOperation;
             requestState.PubnubCallback = callback;
             requestState.Reconnect = false;
@@ -90,7 +92,6 @@ namespace PubnubApi.EndPoint
             string json = UrlProcessRequest<PNDeleteMessageResult>(request, requestState, false);
             if (!string.IsNullOrEmpty(json))
             {
-                //json = json.Replace("\"error\": False", "\"error\": false"); //THIS IS A HACK UNTIL IT IS FIXED AT SERVER
                 List<object> result = ProcessJsonResponse<PNDeleteMessageResult>(requestState, json);
                 ProcessResponseCallbacks(result, requestState);
             }

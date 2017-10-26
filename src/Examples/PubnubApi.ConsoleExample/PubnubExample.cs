@@ -282,6 +282,7 @@ namespace PubnubApiDemo
             config.ReconnectionPolicy = PNReconnectionPolicy.LINEAR;
             //config.UseClassicHttpWebRequest = true;
             //config.FilterExpression = "uuid == '" + config.Uuid +  "'";
+            //config.EnableTelemetry = false;
 
             pubnub = new Pubnub(config);
             pubnub.AddListener(new SubscribeCallbackExt(
@@ -327,10 +328,7 @@ namespace PubnubApiDemo
                     Console.WriteLine("Enter 31 FOR Push - Register Device");
                     Console.WriteLine("Enter 32 FOR Push - Remove Channel");
                     Console.WriteLine("Enter 33 FOR Push - Get Current Channels");
-                    Console.WriteLine("Enter 34 FOR Push - Publish Toast message");
-                    Console.WriteLine("Enter 35 FOR Push - Publish Flip Tile message");
-                    Console.WriteLine("Enter 36 FOR Push - Publish Cycle Tile message");
-                    Console.WriteLine("Enter 37 FOR Push - Publish Iconic Tile message");
+                    Console.WriteLine("Enter 34 FOR Push - Unregister Device");
                     Console.WriteLine("Enter 38 FOR Channel Group - Add channel(s)");
                     Console.WriteLine("Enter 39 FOR Channel Group - Remove channel/group/namespace");
                     Console.WriteLine("Enter 40 FOR Channel Group - Get channel(s)/namespace(s)");
@@ -1097,7 +1095,7 @@ namespace PubnubApiDemo
                         Console.WriteLine(string.Format("Channel = {0}", pushRegisterChannel));
                         Console.ResetColor();
 
-                        Console.WriteLine("Enter Push Token for MPNS");
+                        Console.WriteLine("Enter Push Token for APNS");
                         string pushToken = Console.ReadLine();
                         Console.ForegroundColor = ConsoleColor.Blue;
                         Console.WriteLine(string.Format("Push Token = {0}", pushToken));
@@ -1105,7 +1103,7 @@ namespace PubnubApiDemo
 
                         Console.WriteLine("Running AddPushNotificationsOnChannels()");
                         pubnub.AddPushNotificationsOnChannels().Channels(new string[] { pushRegisterChannel })
-                            .PushType(PNPushType.MPNS)
+                            .PushType(PNPushType.APNS)
                             .DeviceId(pushToken)
                             .Async(new PNPushAddChannelResultExt(
                                 (r, s) => {
@@ -1119,7 +1117,7 @@ namespace PubnubApiDemo
                         Console.WriteLine(string.Format("Channel = {0}", pushRemoveChannel));
                         Console.ResetColor();
 
-                        Console.WriteLine("Enter Push Token for MPNS");
+                        Console.WriteLine("Enter Push Token for APNS");
                         string pushTokenRemove = Console.ReadLine();
                         Console.ForegroundColor = ConsoleColor.Blue;
                         Console.WriteLine(string.Format("Push Token = {0}", pushTokenRemove));
@@ -1128,7 +1126,7 @@ namespace PubnubApiDemo
                         Console.WriteLine("Running RemovePushNotificationsFromChannels()");
                         pubnub.RemovePushNotificationsFromChannels()
                             .Channels(new string[] { pushRemoveChannel })
-                            .PushType(PNPushType.MPNS)
+                            .PushType(PNPushType.APNS)
                             .DeviceId(pushTokenRemove)
                             .Async(new PNPushRemoveChannelResultExt(
                                 (r, s) => {
@@ -1136,7 +1134,7 @@ namespace PubnubApiDemo
                                 }));
                         break;
                     case "33":
-                        Console.WriteLine("Enter Push Token for MPNS");
+                        Console.WriteLine("Enter Push Token for APNS");
                         string pushTokenGetChannel = Console.ReadLine();
                         Console.ForegroundColor = ConsoleColor.Blue;
                         Console.WriteLine(string.Format("Push Token = {0}", pushTokenGetChannel));
@@ -1144,9 +1142,25 @@ namespace PubnubApiDemo
 
                         Console.WriteLine("Running AuditPushChannelProvisions()");
                         pubnub.AuditPushChannelProvisions()
-                            .PushType(PNPushType.MPNS)
+                            .PushType(PNPushType.APNS)
                             .DeviceId(pushTokenGetChannel)
                             .Async(new PNPushListProvisionsResultExt(
+                                (r, s) => {
+                                    Console.WriteLine(pubnub.JsonPluggableLibrary.SerializeToJsonString(r));
+                                }));
+                        break;
+                    case "34":
+                        Console.WriteLine("Enter Push Token for APNS");
+                        string pushTokenUnregisterDevice = Console.ReadLine();
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.WriteLine(string.Format("Push Token = {0}", pushTokenUnregisterDevice));
+                        Console.ResetColor();
+
+                        Console.WriteLine("Running RemoveAllPushNotificationsFromDeviceWithPushToken()");
+                        pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()
+                            .PushType(PNPushType.APNS)
+                            .DeviceId(pushTokenUnregisterDevice)
+                            .Async(new PNPushRemoveAllChannelsResultExt(
                                 (r, s) => {
                                     Console.WriteLine(pubnub.JsonPluggableLibrary.SerializeToJsonString(r));
                                 }));
